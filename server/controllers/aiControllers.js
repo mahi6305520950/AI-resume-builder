@@ -324,3 +324,127 @@ export const atsDeleteResume = async(req,res)=>{
     return res.status(400).json({ message: error.message });
   }
 }
+
+//POST:/api/ai/generate-ats-resume-by-ai/:resumeId
+//POST:/api/ai/generate-ats-resume-by-ai
+
+export const generateAtsResumeByAi = async(req,res)=>{
+  try {
+    const userId = req.userId;
+    //console.log("USER ID:", userId);
+    let { resumeText, title, resumeData, Atstitle } = req.body;
+    const { resumeId } = req.params;
+    if(resumeId){
+        const resume = await Resume.findOne({ userId, _id: resumeId });
+        if (!resume) {
+          return res.status(404).json({ message: "Resume not Found" });
+        }
+      else{
+        resumeText = resume;
+        title = resume.title;
+      }
+    const Ats = await AtsResume.findOne({ userId, resumeId });
+    if(!Ats){
+      return res.status(404).json({ message: "ATS evaluation not found for this resume" });
+    }
+    else{
+      resumeData = Ats;
+      Atstitle=Ats.title
+    }
+
+  }
+  else{
+    const Ats = await AtsResume.findOne({ userId, title });
+    if (!Ats) {
+      return res
+        .status(404)
+        .json({ message: "ATS evaluation not found for this resume" });
+    } else {
+      resumeData = Ats;
+      Atstitle = Ats.title;
+    }
+  }
+  
+
+  const systemText = `You are a top-tier AI resume optimization engine with deep expertise in crafting ATS-compliant, high-impact resumes. Your task is to generate a fully optimized resume based on the provided original resume content and its corresponding ATS evaluation data.
+
+Carefully analyze the original resume, including all sections such as personal details, professional summary, work experience, education, skills, and projects. Then, utilize the ATS evaluation data to identify weaknesses and areas for improvement. Generate a new, optimized resume that addresses the identified issues, enhances keyword relevance, improves content quality with strong action verbs and measurable achievements, and ensures a well-structured format for maximum ATS compatibility.
+
+Ensure the generated resume is concise, impactful, and tailored to demonstrate measurable value, industry alignment, and professional positioning. Avoid adding any information that is not present in the original resume or the ATS evaluation data. Return only the optimized resume content without any explanations, suggestions, or additional text. The output should be in a clean, well-organized format suitable for direct use as a resume.`
+
+  const userText = `Generate an optimized resume based on this original resume content:${resumeText} and its corresponding ATS evaluation data:${resumeData}
+     Return only the optimized resume content without any explanations, suggestions, or additional text. The output should be in a clean, well-organized format suitable for direct use as a resume.i want you to generate the optimized resume in the following JSON format with no additional text before or after:
+{
+      professional_summary: { type: String, default: "" },
+      skills: [{ type: String }],
+      personal_info: {
+        image: { type: String, default: "" },
+        full_name: { type: String, default: "" },
+        profession: { type: String, default: "" },
+        email: { type: String, default: "" },
+        phone: { type: String, default: "" },
+        location: { type: String, default: "" },
+        linkedin: { type: String, default: "" },
+        website: { type: String, default: "" },
+      },
+      experience: [
+        {
+          company: { type: String },
+          position: { type: String },
+          start_date: { type: String },
+          end_date: { type: String },
+          description: { type: String },
+          is_current: { type: Boolean },
+        },
+      ],
+      project: [
+        {
+          name: { type: String },
+          type: { type: String },
+          description: { type: String },
+        },
+      ],
+      education: [
+        {
+          institution: { type: String },
+          degree: { type: String },
+          field: { type: String },
+          graduation_date: { type: String },
+          gpa: { type: String },
+        },
+      ],
+     }
+    `; 
+    
+    const response = await ai.chat.completions.create({
+      model: process.env.OPENAI_MODEL,
+      messages: [
+        {
+          role: "system",
+          content: systemText,
+        },
+        {
+          role: "user",
+          content: userText,
+        },
+      ],
+      response_format: { type: "json_object" },
+    });
+    
+    const enchancedContent = response.choices[0].message.content;
+    const parsedData = JSON.parse(enchancedContent);
+
+    const newResume = await Resume.create({ userId, title: Atstitle || title ,...parsedData});
+
+    return res.status(200).json({ data: newResume._id });
+
+
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+
+}
+
+
+
+

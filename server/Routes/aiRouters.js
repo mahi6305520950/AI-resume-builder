@@ -1,6 +1,6 @@
 import express from "express";
 import protect from "../middlewares/authMiddleware.js";
-import { atsCheckResume, atsDeleteResume, enhanceJobDiscription, enhanceProfessionalSummary, getAtsResume, uploadResume } from "../controllers/aiControllers.js";
+import { atsCheckResume, atsDeleteResume, enhanceJobDiscription, enhanceProfessionalSummary, generateAtsResumeByAi, getAtsResume, uploadResume } from "../controllers/aiControllers.js";
 
 const aiRouter=express.Router()
 
@@ -11,6 +11,8 @@ aiRouter.post("/ats-check-resume/:resumeId", protect, atsCheckResume);
 aiRouter.delete("/ats-check-resume/:resumeId", protect, atsDeleteResume);
 aiRouter.post("/ats-check-resume", protect, atsCheckResume);
 aiRouter.get("/ats-check-resume", protect, getAtsResume);
+aiRouter.post("/generate-ats-resume-by-ai/:resumeId", protect, generateAtsResumeByAi);
+aiRouter.post("/generate-ats-resume-by-ai", protect, generateAtsResumeByAi);
 
 
 

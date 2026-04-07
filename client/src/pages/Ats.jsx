@@ -4,11 +4,12 @@ import toast from 'react-hot-toast';
 import pdfToText from "react-pdftotext";
 import api from '../configs/api';
 import { useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import Loader from '../components/Loader';
 
 const Ats = () => {
    const [allResume,setallResume]=useState([])
+   const navigate=useNavigate()
    
    
 
@@ -17,8 +18,11 @@ const Ats = () => {
     const [resume,setResume]=useState("")
     const [resumeData,setResumeData]=useState(null)
     const [isLoading,setIsLoading]=useState(false)
+    
     const { user, token } = useSelector((state) => state.auth);
     const { resumeId } = useParams();
+
+    const [isLoadingResumeStatus, setIsLoadingResumeStatus] = useState(false);
 
     const uploadResume = async (i) => {
       i.preventDefault();
@@ -120,6 +124,39 @@ const Ats = () => {
     }
  }
 
+ const generateAtsResumeByAi = async () => {
+  setIsLoadingResumeStatus(true)
+   try {
+    let resumeText = "";
+    let url = "/api/ai/generate-ats-resume-by-ai";
+    if (resumeId) {
+      url = `/api/ai/generate-ats-resume-by-ai/${resumeId}`;
+      
+    }
+    else{
+       resumeText = await pdfToText(resume);
+
+    }
+    
+    let Atstitle = resumeData?.title;
+    const { data } = await api.post(
+      url,
+      { resumeText, title,resumeData, Atstitle},
+      {
+        headers: { Authorization: token },
+      },
+    );
+    toast.success(data.message)
+    navigate(`/app/builder/${data.data._id}`);
+    
+    //await loadAllResumes();
+
+   } catch (error) {
+      toast.error(error?.response?.data?.message || error.message);
+   }
+   setIsLoadingResumeStatus(false);
+ };
+
 
     
 
@@ -150,6 +187,8 @@ const Ats = () => {
       const selectedResume = allResume.find((i)=>i._id===id)
       setResumeData(selectedResume)
     }
+
+    
 
 
 
@@ -272,13 +311,13 @@ const Ats = () => {
                     {item.title}
                   </h2>
                   <X
-                    onClick={(e) => {e.stopPropagation()
+                    onClick={(e) => {
+                      e.stopPropagation();
                       deleteAts(item._id);
                     }}
                     className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100  size-5 cursor-pointer hover:bg-gray-200 transition  rounded-full"
                   />
                 </div>
-                
 
                 <div className="mt-2 flex items-center justify-between">
                   <span className="text-xs text-gray-500">ATS Score</span>
@@ -319,7 +358,6 @@ const Ats = () => {
           </span>
         </div>
 
-        
         <div className="flex flex-col md:flex-row items-center justify-between mt-6 gap-6">
           <div className="relative flex items-center justify-center w-32 h-32 rounded-full bg-gray-300">
             <div className="absolute inset-0 rounded-full  bg-amber-200"></div>
@@ -340,7 +378,6 @@ const Ats = () => {
             </div>
           </div>
 
-          
           <div className="flex-1 text-center md:text-left">
             <p
               className={`text-lg font-semibold ${getScoreColor(resumeData?.ats?.score)}`}
@@ -353,9 +390,7 @@ const Ats = () => {
               including keyword relevance, formatting, and overall structure.
             </p>
           </div>
-          
 
-          
           <div className="bg-white p-3 rounded-lg shadow-sm text-center">
             <p className="text-xs text-gray-500">Status</p>
             <p
@@ -443,7 +478,6 @@ const Ats = () => {
               </div>
             </div>
 
-            
             <div className=" flex-1 bg-indigo-50 rounded-2xl p-6 order-2 md:order-1">
               <h2 className="text-xl text-center font-semibold text-indigo-700 mb-2">
                 Suggestions
@@ -488,7 +522,6 @@ const Ats = () => {
             </div>
           </div>
 
-         
           <div className="flex-1 bg-yellow-50 rounded-2xl p-6 order-2 md:order-2">
             <div>
               <h1 className="text-lg text-center font-semibold text-yellow-700 mb-1">
@@ -516,7 +549,6 @@ const Ats = () => {
 
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-4 md:gap-6">
-          
           <div className="flex-1 bg-indigo-50 rounded-2xl p-6 order-2 md:order-1">
             <h1 className="text-lg text-center font-semibold text-indigo-700 mb-1">
               Interview Preparation Questions
@@ -537,7 +569,6 @@ const Ats = () => {
             ))}
           </div>
 
-        
           <div className="w-full md:w-[45%] order-1 md:order-2">
             <div className="sticky md:top-6">
               <div className="bg-white rounded-2xl shadow-lg p-3">
@@ -555,6 +586,42 @@ const Ats = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row text-center md:text-left items-center justify-between gap-8 px-3 md:px-10 border-x border-dashed border-slate-200 py-16 sm:py-20 -mt-10 -mb-10 w-full">
+        <p className="text-xl font-medium max-w-md text-slate-800">
+          Create a Professional, AI-Powered Resume That Helps You Stand Out and
+          Get Hired
+        </p>
+        <p className="text-lg font-semibold text-slate-600">
+          Start building your dream resume with the above features today!
+        </p>
+        <button
+          onClick={() => generateAtsResumeByAi()}
+          className="flex items-center gap-2 rounded py-3 px-8 bg-green-600 hover:bg-green-700 transition text-white"
+        >
+          <span>{isLoadingResumeStatus?(
+            <div className='flex flex-row items-center '>
+              <LoaderCircleIcon className="animate-spin size-4 text-white m-2" />
+              Generating...
+            </div>
+          ):"Get Started"}</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="size-4.5"
+          >
+            <path d="M5 12h14" />
+            <path d="m12 5 7 7-7 7" />
+          </svg>
+        </button>
       </div>
     </div>
   );
