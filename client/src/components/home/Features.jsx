@@ -1,7 +1,7 @@
 import React from "react";
 import { Zap } from "lucide-react";
 import Title from "./Title";
-import Faqfeatures from "../Faqfeatures"
+import Faqfeatures from "../Faqfeatures";
 import CardFeatures from "../CardFeatures";
 
 const Features = () => {
