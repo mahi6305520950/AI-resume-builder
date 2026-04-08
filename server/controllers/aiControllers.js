@@ -434,6 +434,11 @@ Ensure the generated resume is concise, impactful, and tailored to demonstrate m
     const enchancedContent = response.choices[0].message.content;
     const parsedData = JSON.parse(enchancedContent);
 
+    if(resumeId){
+      await Resume.findOneAndUpdate({ _id: resumeId, userId }, { ...parsedData, title: Atstitle || title });
+      const updatedResume = await Resume.findOne({ _id: resumeId, userId });
+      return res.status(200).json({ data: updatedResume._id });
+    }
     const newResume = await Resume.create({ userId, title: Atstitle || title ,...parsedData});
 
     return res.status(200).json({ data: newResume._id });

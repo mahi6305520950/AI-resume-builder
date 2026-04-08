@@ -1,4 +1,4 @@
-import { LoaderCircleIcon, UploadCloud, X, XCircleIcon, XIcon } from 'lucide-react';
+import { Check, LoaderCircleIcon, UploadCloud, X, XCircleIcon, XIcon } from 'lucide-react';
 import React, { useEffect, useState } from 'react'
 import toast from 'react-hot-toast';
 import pdfToText from "react-pdftotext";
@@ -123,9 +123,18 @@ const Ats = () => {
       toast.error(error?.response?.data?.message || error.message);
     }
  }
-
+let lastCallTime = 0;
  const generateAtsResumeByAi = async () => {
-  setIsLoadingResumeStatus(true)
+    const now = Date.now();
+    if (now - lastCallTime < 5000) {
+      toast.error("Please wait a moment before trying again.");
+      return;
+    }
+    lastCallTime = now;
+
+
+  if (isLoadingResumeStatus) return
+   setIsLoadingResumeStatus(true);
    try {
     let resumeText = "";
     let url = "/api/ai/generate-ats-resume-by-ai";
@@ -134,7 +143,16 @@ const Ats = () => {
       
     }
     else{
-       resumeText = await pdfToText(resume);
+      if(!resume || !title){
+        toast.error("Please provide both resume file and title to generate ATS resume.");
+        setStatusUploadResume(true)
+        setIsLoadingResumeStatus(false);
+        return;
+      }
+      if(resume && title){
+        resumeText = await pdfToText(resume);
+      }
+       
 
     }
     
@@ -203,15 +221,34 @@ const Ats = () => {
             ? "Your resume has been analyzed. Review insights and improve your chances."
             : "Upload your resume to check ATS score and get suggestions."}
         </p>
-        <button
-          onClick={() => setStatusUploadResume(true)}
-          className="flex  items-center gap-2 px-5 py-2.5 h-16
-      bg-amber-400 font-bold text-indigo-600 rounded-lg 
-      hover:bg-indigo-100 transition-all duration-400 hover:text-xl   mt-3  mb-3"
-        >
-          <UploadCloud className="size-5" />
-          Upload Resume
-        </button>
+
+        <div className="bg-[#373a3b78] rounded-2xl p-10 flex justify-center items-center mt-5 mb-5">
+          {/* Dashed Border Container */}
+          <div className="border-2 border-dashed border-white rounded-xl p-8 flex flex-col md:flex-row items-center gap-10 max-w-4xl w-full bg-amber-950">
+            {/* Left Side: Button and Count */}
+            <div className="flex flex-col items-center gap-4">
+              <button
+                onClick={() => setStatusUploadResume(true)}
+                className="bg-[#008080] hover:bg-[#006666] text-white font-bold py-4 px-12 rounded-full text-2xl transition-colors"
+              >
+                Check Your Score
+              </button>
+
+              <div className="flex items-center gap-2 text-white text-sm opacity-90">
+                <Check size={16} className="text-white" />
+                <span>Over 2M resumes already checked</span>
+              </div>
+            </div>
+
+            {/* Right Side: Text Information */}
+            <div className="text-white text-center md:text-left">
+              <p className="text-xl font-medium leading-relaxed">
+                Upload or choose a file only in PDF formate.
+              </p>
+            </div>
+          </div>
+        </div>
+        
       </div>
       {statusUploadResume && (
         <form
@@ -597,15 +634,20 @@ const Ats = () => {
           Start building your dream resume with the above features today!
         </p>
         <button
-          onClick={() => generateAtsResumeByAi()}
+          onClick={generateAtsResumeByAi}
+          disabled={isLoadingResumeStatus}
           className="flex items-center gap-2 rounded py-3 px-8 bg-green-600 hover:bg-green-700 transition text-white"
         >
-          <span>{isLoadingResumeStatus?(
-            <div className='flex flex-row items-center '>
-              <LoaderCircleIcon className="animate-spin size-4 text-white m-2" />
-              Generating...
-            </div>
-          ):"Get Started"}</span>
+          <span>
+            {isLoadingResumeStatus ? (
+              <div className="flex flex-row items-center ">
+                <LoaderCircleIcon className="animate-spin size-4 text-white m-2" />
+                Generating...
+              </div>
+            ) : (
+              "Get Started"
+            )}
+          </span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
