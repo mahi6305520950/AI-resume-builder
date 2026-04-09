@@ -332,8 +332,11 @@ export const generateAtsResumeByAi = async(req,res)=>{
   try {
     const userId = req.userId;
     //console.log("USER ID:", userId);
-    let { resumeText, title, resumeData, Atstitle } = req.body;
+    
+
+    let resumeText="", title="", resumeData="", Atstitle="";
     const { resumeId } = req.params;
+    //console.log("Resume ID:", resumeId);
     if(resumeId){
         const resume = await Resume.findOne({ userId, _id: resumeId });
         if (!resume) {
@@ -353,17 +356,9 @@ export const generateAtsResumeByAi = async(req,res)=>{
     }
 
   }
-  else{
-    const Ats = await AtsResume.findOne({ userId, title });
-    if (!Ats) {
-      return res
-        .status(404)
-        .json({ message: "ATS evaluation not found for this resume" });
-    } else {
-      resumeData = Ats;
-      Atstitle = Ats.title;
-    }
-  }
+  
+  //console.log("Resume Text:", resumeText);
+  //console.log("Resume Data:", resumeData);
   
 
   const systemText = `You are a top-tier AI resume optimization engine with deep expertise in crafting ATS-compliant, high-impact resumes. Your task is to generate a fully optimized resume based on the provided original resume content and its corresponding ATS evaluation data.
@@ -436,13 +431,16 @@ Ensure the generated resume is concise, impactful, and tailored to demonstrate m
 
     if(resumeId){
       await Resume.findOneAndUpdate({ _id: resumeId, userId }, { ...parsedData, title: Atstitle || title });
+      const atsResume = await AtsResume.findOneAndDelete({
+        resumeId,
+        userId,
+      });
       const updatedResume = await Resume.findOne({ _id: resumeId, userId });
-      return res.status(200).json({ data: updatedResume._id });
+      
+      
+      return res.status(200).json({ message:"Resume updated successfully according to ATS guidelines", id: updatedResume._id });
     }
-    const newResume = await Resume.create({ userId, title: Atstitle || title ,...parsedData});
-
-    return res.status(200).json({ data: newResume._id });
-
+    
 
   } catch (error) {
     return res.status(400).json({ message: error.message });

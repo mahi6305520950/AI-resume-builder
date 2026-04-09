@@ -136,39 +136,34 @@ let lastCallTime = 0;
   if (isLoadingResumeStatus) return
    setIsLoadingResumeStatus(true);
    try {
-    let resumeText = "";
-    let url = "/api/ai/generate-ats-resume-by-ai";
-    if (resumeId) {
-      url = `/api/ai/generate-ats-resume-by-ai/${resumeId}`;
+     let resumeText = "";
+     let url = "";
+     if (resumeId) {
+       url = `/api/ai/generate-ats-resume-by-ai/${resumeId}`;
+     }
+     else{
       
-    }
-    else{
-      if(!resume || !title){
-        toast.error("Please provide both resume file and title to generate ATS resume.");
-        setStatusUploadResume(true)
+        toast.error(
+          "Upload your resume, create it, check the ATS score, then generate an AI-optimized version.",
+        )
         setIsLoadingResumeStatus(false);
-        return;
+        return
       }
-      if(resume && title){
-        resumeText = await pdfToText(resume);
-      }
-       
+     
 
-    }
-    
-    let Atstitle = resumeData?.title;
-    const { data } = await api.post(
-      url,
-      { resumeText, title,resumeData, Atstitle},
-      {
-        headers: { Authorization: token },
-      },
-    );
-    toast.success(data.message)
-    navigate(`/app/builder/${data.data._id}`);
-    
-    //await loadAllResumes();
+   
+     const { data } = await api.post(
+       url,
+       {},
+       {
+         headers: { Authorization: token },
+       },
+     );
+     console.log(data);
+     toast.success(data.message);
+     navigate(`/app/builder/${data.id}`);
 
+   
    } catch (error) {
       toast.error(error?.response?.data?.message || error.message);
    }
@@ -222,33 +217,32 @@ let lastCallTime = 0;
             : "Upload your resume to check ATS score and get suggestions."}
         </p>
 
-        <div className="bg-[#373a3b78] rounded-2xl p-10 flex justify-center items-center mt-5 mb-5">
+        <div className="bg-gray-100 rounded-2xl p-5 flex justify-center items-center mt-5 mb-5">
           {/* Dashed Border Container */}
-          <div className="border-2 border-dashed border-white rounded-xl p-8 flex flex-col md:flex-row items-center gap-10 max-w-4xl w-full bg-amber-950">
+          <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 flex flex-col md:flex-row items-center gap-10 max-w-4xl w-full bg-white shadow-md">
             {/* Left Side: Button and Count */}
             <div className="flex flex-col items-center gap-4">
               <button
                 onClick={() => setStatusUploadResume(true)}
-                className="bg-[#008080] hover:bg-[#006666] text-white font-bold py-4 px-12 rounded-full text-2xl transition-colors"
+                className="bg-[#2a8686] hover:bg-[#006666]  font-bold py-4 px-12 rounded-full text-2xl transition-colors"
               >
                 Check Your Score
               </button>
 
-              <div className="flex items-center gap-2 text-white text-sm opacity-90">
-                <Check size={16} className="text-white" />
+              <div className="flex items-center gap-2 text-gray-600 text-sm opacity-90">
+                <Check size={16} className="text-gray-900" />
                 <span>Over 2M resumes already checked</span>
               </div>
             </div>
 
             {/* Right Side: Text Information */}
-            <div className="text-white text-center md:text-left">
+            <div className="text-gray-600 text-center md:text-left">
               <p className="text-xl font-medium leading-relaxed">
                 Upload or choose a file only in PDF formate.
               </p>
             </div>
           </div>
         </div>
-        
       </div>
       {statusUploadResume && (
         <form
@@ -324,6 +318,16 @@ let lastCallTime = 0;
 
       <div>
         <hr className="my-6 w-full border-0 h-[2px] bg-slate-300" />
+        <div className="mt-2.5 mb-4 text-center">
+          <h1 className="text-2xl md:text-2xl font-semibold text-green-900 mb-2">
+            ATS Resume Reports
+          </h1>
+          <p className="text-gray-600 mt-2 ">
+            Explore your analyzed resumes, check ATS scores, and generate
+            improved versions based on AI recommendations.
+          </p>
+        </div>
+
         {isLoading && <Loader />}
 
         <div className="max-w-7xl mx-auto p-4">
@@ -630,13 +634,25 @@ let lastCallTime = 0;
           Create a Professional, AI-Powered Resume That Helps You Stand Out and
           Get Hired
         </p>
-        <p className="text-lg font-semibold text-slate-600">
-          Start building your dream resume with the above features today!
-        </p>
+        <div>
+          <p className="text-lg font-semibold text-slate-600">
+            Start building your dream resume with the above features today!
+          </p>
+          <p className="text-sm text-slate-500">
+            After creating the resume and getting the ATS score, you can
+            generate a new resume using the ATS insights and instructions.
+          </p>
+        </div>
         <button
           onClick={generateAtsResumeByAi}
           disabled={isLoadingResumeStatus}
-          className="flex items-center gap-2 rounded py-3 px-8 bg-green-600 hover:bg-green-700 transition text-white"
+          className={`flex items-center gap-2 rounded py-3 px-8 text-white transition
+              ${
+                isLoadingResumeStatus
+                  ? "bg-blue-950 cursor-not-allowed border-amber-200 border-2 rounded-full"
+                  : "bg-green-600 hover:bg-green-700 rounded-full border-2 border-indigo-50"
+              }
+            `}
         >
           <span>
             {isLoadingResumeStatus ? (

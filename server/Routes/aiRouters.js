@@ -12,7 +12,7 @@ aiRouter.delete("/ats-check-resume/:resumeId", protect, atsDeleteResume);
 aiRouter.post("/ats-check-resume", protect, atsCheckResume);
 aiRouter.get("/ats-check-resume", protect, getAtsResume);
 aiRouter.post("/generate-ats-resume-by-ai/:resumeId", protect, generateAtsResumeByAi);
-aiRouter.post("/generate-ats-resume-by-ai", protect, generateAtsResumeByAi);
+
 
 
 
