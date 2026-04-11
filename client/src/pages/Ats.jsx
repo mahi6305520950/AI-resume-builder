@@ -125,6 +125,21 @@ const Ats = () => {
  }
 let lastCallTime = 0;
  const generateAtsResumeByAi = async () => {
+      if (!resumeData?.resumeId){
+          toast.error(
+            "Upload your resume, create it, check the ATS score, then generate an AI-optimized version.",
+          );
+          setIsLoadingResumeStatus(false);
+          return;
+
+      }
+      const confirmed = window.confirm(
+      "Generating an AI-optimized resume will overwrite your existing resume. Do you want to proceed?"
+    );
+    if(!confirmed) return;
+    if(confirmed){
+      
+
     const now = Date.now();
     if (now - lastCallTime < 5000) {
       toast.error("Please wait a moment before trying again.");
@@ -139,16 +154,10 @@ let lastCallTime = 0;
      let resumeText = "";
      let url = "";
      if (resumeData?.resumeId) {
+      toast.success("Generating your AI-optimized resume. Please wait...");
        url = `/api/ai/generate-ats-resume-by-ai/${resumeData?.resumeId}`;
      }
-     else{
-      
-        toast.error(
-          "Upload your resume, create it, check the ATS score, then generate an AI-optimized version.",
-        )
-        setIsLoadingResumeStatus(false);
-        return
-      }
+    
      
 
    
@@ -168,6 +177,7 @@ let lastCallTime = 0;
       toast.error(error?.response?.data?.message || error.message);
    }
    setIsLoadingResumeStatus(false);
+  }
  };
 
 
@@ -664,8 +674,8 @@ let lastCallTime = 0;
         >
           <span>
             {isLoadingResumeStatus ? (
-              <div className="flex flex-row items-center ">
-                <LoaderCircleIcon className="animate-spin size-4 text-white m-2" />
+              <div className="flex flex-row items-center cursor-not-allowed gap-2">
+                <LoaderCircleIcon className="animate-spin size-4 text-white " />
                 Generating...
               </div>
             ) : (
