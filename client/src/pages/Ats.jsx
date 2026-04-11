@@ -138,8 +138,8 @@ let lastCallTime = 0;
    try {
      let resumeText = "";
      let url = "";
-     if (resumeId) {
-       url = `/api/ai/generate-ats-resume-by-ai/${resumeId}`;
+     if (resumeData?.resumeId) {
+       url = `/api/ai/generate-ats-resume-by-ai/${resumeData?.resumeId}`;
      }
      else{
       
@@ -374,9 +374,17 @@ let lastCallTime = 0;
                   />
                 </div>
 
-                <p className="text-xs text-gray-400 mt-3">
-                  Last updated: {new Date(item.createdAt).toLocaleDateString()}
-                </p>
+                <div className="flex flex-row items-center justify-between">
+                  {item.resumeId === null && (
+                    <p className="text-sm text-gray-500 mt-3 ">
+                      Resume not created yet.
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-600 mt-3">
+                    Last updated:{" "}
+                    {new Date(item.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
               </div>
             ))}
           </div>

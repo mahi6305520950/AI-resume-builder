@@ -8,6 +8,7 @@ import api from "../configs/api";
 import pdfToText from "react-pdftotext"
 
 const Dashboard = () => {
+    
     const {user,token}=useSelector(state=>state.auth)
     const [allResume,setallResume]=useState([])
     const [statusCreateResume, setStatusCreateResume] = useState(false);
