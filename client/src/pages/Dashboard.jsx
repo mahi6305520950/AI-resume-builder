@@ -63,6 +63,7 @@ const Dashboard = () => {
           { headers: { Authorization: token } },
         );
         setTitle("")
+        console.log(data)
         setStatusUploadResume(false);
         navigate(`builder/${data.resumeId}`);
         
