@@ -108,21 +108,28 @@ const Ats = () => {
  }, [token, resumeId]);
 
  const deleteAts=async(id)=>{
-    try {
-      const { data } = await api.delete(
-        `/api/ai/ats-check-resume/${id}`,
-        {
-          headers: { Authorization: token },
-        },
-      );
-      toast.success(data.message);
-      setallResume((prev) => prev.filter((item) => item._id !== id));
-      await loadAllResumes();
-      
-    } catch (error) {
-      toast.error(error?.response?.data?.message || error.message);
+      const confirmed = window.confirm("Are you sure you want to delete this resume?");
+      if (!confirmed) return;
+      if(confirmed){
+      try {
+        const { data } = await api.delete(
+          `/api/ai/ats-check-resume/${id}`,
+          {
+            headers: { Authorization: token },
+          },
+        );
+        toast.success(data.message);
+        setallResume((prev) => prev.filter((item) => item._id !== id));
+        await loadAllResumes();
+        
+      } catch (error) {
+        toast.error(error?.response?.data?.message || error.message);
+      }
     }
  }
+
+
+
 let lastCallTime = 0;
  const generateAtsResumeByAi = async () => {
       if (!resumeData?.resumeId){
